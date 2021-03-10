@@ -1,4 +1,9 @@
 APScheduler==3.6.3
 requests==2.20.1
 aiohttp==3.6.2
-websocket_client==0.57.0
+websocket_client==0.58.0
+#pip3 install websocket-client -i http://pypi.douban.com/simple/ --trusted-host pypi.douban.com
+#pip3 install tushare -i http://pypi.douban.com/simple/ --trusted-host pypi.douban.com
+#pip3 install datareader -i http://pypi.douban.com/simple/ --trusted-host pypi.douban.com
+#pip3 install arch -i http://pypi.douban.com/simple/ --trusted-host pypi.douban.com
+#pip3 install pandas-datareader -i http://pypi.douban.com/simple/ --trusted-host pypi.douban.com
