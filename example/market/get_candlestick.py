@@ -33,7 +33,7 @@ if list_obj and len(list_obj):
 dataframe = pd.DataFrame({'Id': Id, 'High': High,'Low': Low,'Open': Open,'Close': Close,'Count': Count,'Amount': Amount,'Volume': Volume})
 
 # 将DataFrame存储为csv,index表示是否显示行名，default=True
-dataframe.to_csv("test.csv", index=False, sep=',')
+dataframe.to_csv(interval+symbol+".csv", index=False, sep=',')
 
 
 
