@@ -12,3 +12,4 @@ class WebsocketRequest(object):
         self.json_parser = None
         self.update_callback = None
         self.api_version = ApiVersion.VERSION_V1  # v1 as default
+        self.proxies = {"http": "127.0.0.1:10809", "https": "127.0.0.1:10809"}

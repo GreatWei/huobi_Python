@@ -79,50 +79,17 @@ def predictval(model, original_data, leng, scaler):
     return all_closing_price
 
 
-# 初始化参数
-global contr
-global lastPrice
-global totalprofit
-
-contr = False
-lastPrice = 0
-totalprofit = 0
-
-
-def buy_or_sell(closeList):
-    market_client = MarketClient()
-    nowshould = closeList[0] < closeList[len(closeList) - 1]
-    global contr
-    global lastPrice
-    global totalprofit
-    # 买入true
-    if contr and nowshould:
-        now_price = market_client.get_market_trade(symbol="btcusdt")
-        now_price = now_price[0].price
-        lastPrice = now_price
-        contr = False
-
-    # 卖出 false
-    if (bool(1 - contr)) and (bool(1 - nowshould)):
-        if lastPrice == 0:
-            contr = True
-        else:
-            now_price = market_client.get_market_trade(symbol="btcusdt")
-            now_price = now_price[0].price
-            totalprofit = totalprofit + now_price - lastPrice - now_price * 0.002 - lastPrice * 0.002
-            contr = True
-
 tf.random.set_seed(54294)
 while True:
     scaler = MinMaxScaler(feature_range=(0, 1))
-    interval = CandlestickInterval.MIN1
+    interval = CandlestickInterval.HOUR4
     symbol = "btcusdt"
     getTrainData(symbol, interval)
     # read the file
     df = pd.read_csv(interval + symbol + ".csv")
     df.head()
-    filename = df['Id'][0]
-    df.index = (df['Id'] - df['Id'][len(df) - 1]) / (60)
+    filename = str(df['Id'][0])+interval + symbol
+    df.index = (df['Id'] - df['Id'][len(df) - 1]) / (60*60*4)
     # print("index",df.index)
     data = df.sort_index(ascending=True, axis=0)
     data.drop('Id', axis=1, inplace=True)
@@ -167,7 +134,7 @@ while True:
     my_closing_price = predictval(model, original_data, leng, scaler)
 
     my_closing_price = np.array(my_closing_price)
-    buy_or_sell(my_closing_price[:, 3])
+
     train = data[0:trainLen]['Close']
     # print("trainLen",trainLen)
     # print("data",data[1800:2000])
@@ -188,4 +155,4 @@ while True:
     plt.savefig(str(filename) + ".png")
     # plt.show()
     plt.clf()
-    time.sleep(60)
+    time.sleep(60*60*4)

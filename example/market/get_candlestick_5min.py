@@ -55,8 +55,8 @@ def trainModel(x_train, y_train, units, epochs, batch_size):
     model.add(LSTM(units=units))
     model.add(Dense(7))
     model.compile(loss='mean_squared_error', optimizer='adam')
-    model.fit(x_train, y_train, epochs=epochs, batch_size=batch_size, verbose=2)
-    print(model.summary())
+    model.fit(x_train, y_train, epochs=epochs, batch_size=batch_size, verbose=0)
+    # print(model.summary())
     return model
 
 
@@ -89,7 +89,7 @@ lastPrice = 0
 totalprofit = 0
 
 
-def buy_or_sell(closeList):
+def buy_or_sell(closeList, whenTime):
     market_client = MarketClient()
     nowshould = closeList[0] < closeList[len(closeList) - 1]
     global contr
@@ -100,6 +100,7 @@ def buy_or_sell(closeList):
         now_price = market_client.get_market_trade(symbol="btcusdt")
         now_price = now_price[0].price
         lastPrice = now_price
+        print("buy Price:", str(lastPrice) + "," + str(whenTime))
         contr = False
 
     # 卖出 false
@@ -109,27 +110,36 @@ def buy_or_sell(closeList):
         else:
             now_price = market_client.get_market_trade(symbol="btcusdt")
             now_price = now_price[0].price
-            totalprofit = totalprofit + now_price - lastPrice - now_price * 0.002 - lastPrice * 0.002
-            contr = True
+            if (now_price - lastPrice - now_price * 0.002 - lastPrice * 0.002) > 0:
+                print("sell Price:", str(now_price) + "," + str(whenTime))
+                totalprofit = totalprofit + now_price - lastPrice - now_price * 0.002 - lastPrice * 0.002
+                print("totalprofit:", str(totalprofit) + "," + str(whenTime))
+                contr = True
+
 
 tf.random.set_seed(54294)
 while True:
     scaler = MinMaxScaler(feature_range=(0, 1))
-    interval = CandlestickInterval.MIN1
+    interval = CandlestickInterval.MIN5
     symbol = "btcusdt"
     getTrainData(symbol, interval)
     # read the file
     df = pd.read_csv(interval + symbol + ".csv")
-    df.head()
-    filename = df['Id'][0]
-    df.index = (df['Id'] - df['Id'][len(df) - 1]) / (60)
+    # df.head()
+    filename = str(df['Id'][0]) + interval + symbol
+    whenTime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(df['Id'][1]))
+    maxTime = df['Id'][0]
+    # print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(df['Id'][0])))
+    # print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(df['Id'][1])))
+    # print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>----------OK--------------------")
+    df.index = (df['Id'] - df['Id'][len(df) - 1]) / (60 * 5)
     # print("index",df.index)
     data = df.sort_index(ascending=True, axis=0)
     data.drop('Id', axis=1, inplace=True)
     dataset = data.values
     # print("dataset", dataset.shape)
     train = dataset[0:2000, :]
-    print("train", len(train))
+    # print("train", len(train))
     trainLen = len(train)
     valid = dataset[len(train):, :]
     scaler = MinMaxScaler(feature_range=(0, 1))
@@ -148,9 +158,9 @@ while True:
 
     leng = dataset.shape[0] - train.shape[0]
     leng = 100
-    print("leng", leng)
+    # print("leng", leng)
     inputs = scaler.transform(inputs)
-    print("inputs", inputs.shape)
+    # print("inputs", inputs.shape)
     X_test = []
     # print("inputs :", inputs.shape)
     for i in range(60, inputs.shape[0]):
@@ -159,33 +169,37 @@ while True:
     X_test = np.array(X_test)
 
     # create and fit the LSTM network
-    model = trainModel(x_train, y_train, 128, 12, 16)
-    print("X_test", len(X_test))
+    model = trainModel(x_train, y_train, 120, 9, 12)
+    # print("X_test", len(X_test))
     closing_price = model.predict(X_test)
     closing_price = np.array(closing_price)
     closing_price = scaler.inverse_transform(closing_price)
     my_closing_price = predictval(model, original_data, leng, scaler)
 
     my_closing_price = np.array(my_closing_price)
-    buy_or_sell(my_closing_price[:, 3])
-    train = data[0:trainLen]['Close']
-    # print("trainLen",trainLen)
-    # print("data",data[1800:2000])
-    valid = data[trainLen:trainLen + len(closing_price)]
-    # print("valid",len(valid))
-    # print("closing_price", len(closing_price))
-    # valid['Predictions'] = closing_price[:, 3]
-    # valid['MyPredictions'] = my_closing_price[:, 3]
-    plt.plot(train, label='train_Close')
-
-    # plt.plot(valid['Close'], label='Close')
-    # plt.plot(valid['Predictions'], label='Predictions')
-    # plt.plot(valid['MyPredictions'], label='MyPredictions')
-    new_data = pd.DataFrame(my_closing_price[:, 3])
-    new_data.index = new_data.index + 2000
-    plt.plot(new_data, label='MyPredictions')
-    plt.legend(loc='best')
-    plt.savefig(str(filename) + ".png")
-    # plt.show()
-    plt.clf()
-    time.sleep(60)
+    buy_or_sell(my_closing_price[:, 3], whenTime)
+    # train = data[0:trainLen]['Close']
+    # # print("trainLen",trainLen)
+    # # print("data",data[1800:2000])
+    # valid = data[trainLen:trainLen + len(closing_price)]
+    # # print("valid",len(valid))
+    # # print("closing_price", len(closing_price))
+    # # valid['Predictions'] = closing_price[:, 3]
+    # # valid['MyPredictions'] = my_closing_price[:, 3]
+    # plt.plot(train, label='train_Close')
+    #
+    # # plt.plot(valid['Close'], label='Close')
+    # # plt.plot(valid['Predictions'], label='Predictions')
+    # # plt.plot(valid['MyPredictions'], label='MyPredictions')
+    # new_data = pd.DataFrame(my_closing_price[:, 3])
+    # new_data.index = new_data.index + 2000
+    # plt.plot(new_data, label='MyPredictions')
+    # plt.legend(loc='best')
+    # plt.savefig(str(filename) + ".png")
+    # # plt.show()
+    # plt.clf()
+    # time.sleep(60 * 5)
+    nowTime = int(time.time())
+    if (nowTime - maxTime) < 300:
+        print("time sleep:", (300 - (nowTime - maxTime)))
+        time.sleep(300 - (nowTime - maxTime))
