@@ -242,8 +242,8 @@ while True:
     # plt.clf()
     # time.sleep(60 * 5)
     nowTime = int(time.time())
-    log.logger.info("train Time:" + str(nowTime-startTime))
+    # log.logger.info("train Time:" + str(nowTime-startTime))
     if (nowTime - maxTime) < 60:
         # print("time sleep:", (60 - (nowTime - maxTime)))
-        log.logger.info("time sleep:" + str((60 - (nowTime - maxTime))))
+        # log.logger.info("time sleep:" + str((60 - (nowTime - maxTime))))
         time.sleep(60 - (nowTime - maxTime))
