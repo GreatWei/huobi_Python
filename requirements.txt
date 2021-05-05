@@ -30,11 +30,9 @@ pip install grpcio -i http://pypi.douban.com/simple/ --trusted-host pypi.douban.
 
 pip install tensorflow -i http://pypi.douban.com/simple/ --trusted-host pypi.douban.com
 
+pip list --format=freeze > requirementhuobi.txt
 
-
-
-
-
+pip3 install -i http://pypi.douban.com/simple/ --trusted-host pypi.douban.com -r requirements.txt
 
 
 
@@ -127,3 +125,21 @@ pip install wrapt==1.12.1 -i http://pypi.douban.com/simple/ --trusted-host pypi.
 pip install zipp==3.4.1 -i http://pypi.douban.com/simple/ --trusted-host pypi.douban.com
 
 
+
+pip list --format=freeze > requirements.txt
+pydoc modules
+export PATH=$PATH:/root/anaconda3/bin
+source /etc/profile
+conda create -n huobi_PythonT python=3.7
+source activate huobi_PythonT
+Linux:  source activate your_env_nam
+Windows: activate your_env_name
+python setup.py install
+python get_candlestick_5min.py
+pip3 install -r requirementhuobi.txt
+
+Linux:  source deactivate your_env_name(虚拟环境名称)
+source deactivate huobi_PythonT
+Windows:deactivate env_name，也可以使用`activate root`切回root环境
+
+nohup python get_candlestick_1min.py &
